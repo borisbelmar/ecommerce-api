@@ -1,0 +1,193 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum DiscountType {
+  PRODUCT
+  CATEGORY
+  TAG
+  ALL
+}
+
+model Discount {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  code      String?      @unique
+  type      DiscountType
+  ref       String[]
+  value     Float
+  from      DateTime?
+  to        DateTime?
+  maxUses   Int?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  Cart      Cart[]
+  Order     Order[]
+
+  @@map("discounts")
+}
+
+model SubProduct {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  variant    String
+  name       String
+  image      String[]
+  sku        String   @unique
+  netPrice   Float
+  totalPrice Float
+  quantity   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Product    Product? @relation(fields: [productId], references: [id])
+  productId  String?  @db.ObjectId
+  Buy        Buy[]
+
+  @@map("subproducts")
+}
+
+model Category {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  productsId String[]  @db.ObjectId
+  products   Product[] @relation(fields: [productsId], references: [id])
+
+  @@map("categories")
+}
+
+model Product {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  images       String[]
+  tags         String[]
+  variants     String[]
+  sku          String       @unique
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  subproducts  SubProduct[]
+  categoriesId String[]     @db.ObjectId
+  categories   Category[]   @relation(fields: [categoriesId], references: [id])
+  Buy          Buy[]
+
+  @@map("products")
+}
+
+model Address {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  street    String
+  city      String
+  state     String
+  country   String
+  zip       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  orders    Order[]
+
+  @@map("addresses")
+}
+
+type CartItem {
+  quantity  Int
+  productId String
+}
+
+model Cart {
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  userId     String     @unique @db.ObjectId
+  user       User       @relation(fields: [userId], references: [id])
+  items      CartItem[]
+  discount   Discount?  @relation(fields: [discountId], references: [id])
+  discountId String?    @db.ObjectId
+
+  @@map("carts")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  addresses Address[]
+  cartId    String?   @db.ObjectId
+  cart      Cart?
+  orders    Order[]
+  role      Role      @default(USER)
+  scope     String[]  @default(["user"])
+  Buy       Buy[]
+
+  @@map("users")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  userId     String      @db.ObjectId
+  user       User        @relation(fields: [userId], references: [id])
+  items      CartItem[]
+  addressId  String      @db.ObjectId
+  address    Address     @relation(fields: [addressId], references: [id])
+  discountId String?     @db.ObjectId
+  discount   Discount?   @relation(fields: [discountId], references: [id])
+  total      Float
+  status     OrderStatus
+  Payment    Payment[]
+
+  @@map("orders")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+model Payment {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  orderId   String        @db.ObjectId
+  order     Order         @relation(fields: [orderId], references: [id])
+  status    PaymentStatus
+
+  @@map("payments")
+}
+
+model Buy {
+  id        String     @id @map("_id") @db.ObjectId
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  userId    String     @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+  productId String     @db.ObjectId
+  product   SubProduct @relation(fields: [productId], references: [id])
+  Product   Product    @relation(fields: [productId], references: [id])
+
+  @@map("buys")
+}
