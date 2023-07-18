@@ -31,24 +31,6 @@ model Discount {
   @@map("discounts")
 }
 
-model SubProduct {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  variant    String
-  name       String
-  image      String[]
-  sku        String   @unique
-  netPrice   Float
-  totalPrice Float
-  quantity   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  Product    Product? @relation(fields: [productId], references: [id])
-  productId  String?  @db.ObjectId
-  Buy        Buy[]
-
-  @@map("subproducts")
-}
-
 model Category {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   name       String
@@ -61,18 +43,19 @@ model Category {
 }
 
 model Product {
-  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
   title        String
   description  String
   images       String[]
   tags         String[]
   variants     String[]
-  sku          String       @unique
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  subproducts  SubProduct[]
-  categoriesId String[]     @db.ObjectId
-  categories   Category[]   @relation(fields: [categoriesId], references: [id])
+  price        Float
+  stock         Int
+  sku          String     @unique
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  categoriesId String[]   @db.ObjectId
+  categories   Category[] @relation(fields: [categoriesId], references: [id])
   Buy          Buy[]
 
   @@map("products")
@@ -125,13 +108,12 @@ model User {
   password  String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  addresses Address[]
-  cartId    String?   @db.ObjectId
-  cart      Cart?
-  orders    Order[]
   role      Role      @default(USER)
+  addresses Address[]
+  orders    Order[]
   scope     String[]  @default(["user"])
   Buy       Buy[]
+  Cart      Cart?
 
   @@map("users")
 }
@@ -180,14 +162,13 @@ model Payment {
 }
 
 model Buy {
-  id        String     @id @map("_id") @db.ObjectId
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  userId    String     @db.ObjectId
-  user      User       @relation(fields: [userId], references: [id])
-  productId String     @db.ObjectId
-  product   SubProduct @relation(fields: [productId], references: [id])
-  Product   Product    @relation(fields: [productId], references: [id])
+  id        String   @id @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  productId String   @db.ObjectId
+  Product   Product  @relation(fields: [productId], references: [id])
 
   @@map("buys")
 }
