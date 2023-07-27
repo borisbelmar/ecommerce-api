@@ -43,9 +43,7 @@ export default function getProductRepository(): ProductRepository {
   const getAllProductsByCategory = async (categoryId: string) => {
     return await prismaClient.product.findMany({
       where: {
-        categoriesId: {
-          has: categoryId
-        }
+        categoryId
       }
     })
   }

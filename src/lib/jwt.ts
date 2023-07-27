@@ -1,3 +1,4 @@
+import { ControllerError } from '@/errors/ControllerError'
 import { JWTPayload, jwtVerify, SignJWT } from 'jose'
 
 export interface TokenPayload extends JWTPayload {
@@ -20,7 +21,11 @@ export const signToken = async (payload: Omit<TokenPayload, 'iat' | 'exp'>): Pro
 }
 
 export const verifyToken = async (token: string): Promise<TokenPayload> => {
-  const result = await jwtVerify(token, secret, { algorithms: ['HS256'] })
-
-  return result.payload as TokenPayload
+  try {
+    const result = await jwtVerify(token, secret, { algorithms: ['HS256'] })
+  
+    return result.payload as TokenPayload
+  } catch (error) {
+    throw new ControllerError(401, 'Invalid token')
+  }
 }

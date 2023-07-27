@@ -5,11 +5,10 @@ export const createProductSchema = z.object({
   description: z.string(),
   price: z.number(),
   stock: z.number(),
-  images: z.array(z.string()),
+  image:z.string(),
   tags: z.array(z.string()),
   sku: z.string(),
-  variants: z.array(z.string()).optional().default([]),
-  categoriesId: z.array(z.string()).optional().default([])
+  categoryId: z.string().nullable()
 })
 
 export const updateProductSchema = z.object({
@@ -17,9 +16,8 @@ export const updateProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().optional(),
   stock: z.number().optional(),
-  images: z.array(z.string()).optional(),
+  image: z.string().optional(),
   tags: z.array(z.string()).optional(),
   sku: z.string().optional(),
-  variants: z.array(z.string()).optional(),
-  categoriesId: z.array(z.string()).optional()
+  categoryId: z.string().nullable()
 })
